@@ -6,7 +6,6 @@ pi = np.pi
 # Dados coletados experimentalmente
 y0 = 0.113
 y3 = 0.05843
-delta = 0.2198
 E = 2.78 * 1000
 I = 2.08
 L_viga = 0.25
