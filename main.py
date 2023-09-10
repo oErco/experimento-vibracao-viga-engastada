@@ -4,15 +4,15 @@ import matplotlib.pyplot as plt
 pi = np.pi
 
 # Dados coletados experimentalmente
-x1 = 0.113
-x3 = 0.05843
+y0 = 0.113
+y3 = 0.05843
 delta = 0.2198
 E = 2.78 * 1000
 I = 2.08
 L_viga = 0.25
 L_total = 0.30
 m = 0.012
-A = x1
+A = y0
 
 personalizar_dados = False
 
@@ -35,10 +35,10 @@ while (personalizar_dados != 's' and personalizar_dados != "n"):
 
 # Alteração de dados base do problema
 if (personalizar_dados == 's'):
-    x1 = float(
+    y0 = float(
         input("Insira a posição em t=0 (m): "))
 
-    x3 = float(
+    y3 = float(
         input("Insira a posição do terceiro pico (m): "))
 
     E = float(
@@ -58,7 +58,7 @@ if (personalizar_dados == 's'):
 
 
 def calcular_decremento_logaritmico():
-    return np.log(x1 / x3) / 3
+    return np.log(y0 / y3) / 3
 
 
 def calcular_razao_amortecimento(delta):
