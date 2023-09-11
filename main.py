@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 pi = np.pi
+g = 9.81
 
 # Dados coletados experimentalmente
 y0 = 0.113
@@ -14,6 +15,7 @@ m = 0.012
 A = y0
 
 personalizar_dados = False
+considerar_gravidade = False
 
 # Entradas pelo usuário
 m2 = float(
@@ -29,6 +31,13 @@ while (personalizar_dados != 's' and personalizar_dados != "n"):
         "Deseja inserir seus próprios dados para as demais variáveis do problema? (s/n): ")
 
     if (personalizar_dados != 's' and personalizar_dados != "n"):
+        print("Responda com 's' para sim ou 'n' para não. \n")
+
+while (considerar_gravidade != 's' and considerar_gravidade != "n"):
+    considerar_gravidade = input(
+        "Deseja considerar a influência da gravidade? (s/n): ")
+
+    if (considerar_gravidade != 's' and considerar_gravidade != "n"):
         print("Responda com 's' para sim ou 'n' para não. \n")
 
 
@@ -86,8 +95,29 @@ def calcular_periodo_amortecido(omega_d):
     return (2 * pi) / omega_d
 
 
+def calcular_coeficiente_amortecimento(m_eq, omega_n):
+    c_c = 2 * np.sqrt(m_eq * k_eq)
+    return zeta * c_c
+
+
 def sistema_amortecido_subcritico(t, A, zeta, omega_n, omega_d, phi=0):
     return A * np.exp(-zeta * omega_n * t) * np.cos(omega_d * t + phi)
+
+
+def sistema_amortecido_subcritico_gravidade(t, A, m_eq, k, c):
+    y = np.zeros_like(t)
+    y[0] = A
+    y_dot = np.zeros_like(t)
+    y_dot[0] = 0
+    
+    for i in range(1, len(t)):
+        F_gravidade = -m_eq * g
+        
+        y_double_dot = (F_gravidade - c * y_dot[i-1] - k * y[i-1]) / m_eq
+        y_dot[i] = y_dot[i-1] + y_double_dot * (t[i] - t[i-1])
+        y[i] = y[i-1] + y_dot[i] * (t[i] - t[i-1])
+    
+    return y
 
 
 # Cálculo das variáveis para a descrição da posição sem massa adicional
@@ -98,28 +128,37 @@ m_eq = calcular_massa_equivalente(m)
 omega_n = calcular_frequencia_natural(k_eq, m_eq)
 omega_d = calcular_frequencia_amortecida(zeta, omega_n)
 tau = calcular_periodo_amortecido(omega_d)
+c = calcular_coeficiente_amortecimento(m_eq, omega_n)
 
 # Cálculo das variáveis para a descrição da posição com massa adicional
 m_eq2 = calcular_massa_equivalente(m2)
 omega_n2 = calcular_frequencia_natural(k_eq, m_eq2)
 omega_d2 = calcular_frequencia_amortecida(zeta, omega_n2)
 tau2 = calcular_periodo_amortecido(omega_d2)
+c2 = calcular_coeficiente_amortecimento(m_eq2, omega_n2)
 
 # Criação do vetor de tempo e cálculo dos deslocamentos
 tempo = np.linspace(0, duracao, 1000)
 
-deslocamento_sem_massa = sistema_amortecido_subcritico(
-    tempo, A, zeta, omega_n, omega_d)
-deslocamento_massa_adicional = sistema_amortecido_subcritico(
-    tempo, A, zeta, omega_n2, omega_d2)
+if (considerar_gravidade == 's'):
+    deslocamento_sem_massa = sistema_amortecido_subcritico_gravidade(
+        tempo, A, m_eq, k_eq, c)
+    deslocamento_massa_adicional = sistema_amortecido_subcritico_gravidade(
+        tempo, A, m_eq2, k_eq, c2)
+else:
+    deslocamento_sem_massa = sistema_amortecido_subcritico(
+        tempo, A, zeta, omega_n, omega_d)
+    deslocamento_massa_adicional = sistema_amortecido_subcritico(
+        tempo, A, zeta, omega_n2, omega_d2)
 
 # Exibição dos valores das variáveis calculadas
 print(
     f"\n \n VARIÁVEIS CALCULADAS: \n delta = {delta} \n zeta = {zeta} \n k_eq = {k_eq}")
 print(
-    f"\n SEM MASSA ADICIONAL: \n m_eq = {m_eq} \n omega_n = {omega_n} \n omega_d = {omega_d} \n tau = {tau}")
+    f"\n SEM MASSA ADICIONAL: \n m_eq = {m_eq} \n omega_n = {omega_n} \n omega_d = {omega_d} \n tau = {tau} \n c = {c}")
 print(
-    f"\n COM MASSA ADICIONAL: \n m_eq = {m_eq2} \n omega_n = {omega_n2} \n omega_d = {omega_d2} \n tau = {tau2} \n")
+    f"\n COM MASSA ADICIONAL: \n m_eq = {m_eq2} \n omega_n = {omega_n2} \n omega_d = {omega_d2} \n tau = {tau2} \n c = {c2} \n")
+
 
 # Plotagem do gráfico
 plt.figure(figsize=(10, 6))
